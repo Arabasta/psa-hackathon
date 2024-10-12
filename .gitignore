@@ -5,3 +5,11 @@
 __pycache__/
 Lib/
 Scripts/
+Lib/
+Scripts/
+
+# Openpose
+openpose/
+
+# Firebase
+firebase.json
