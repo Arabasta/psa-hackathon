@@ -1,2 +1,5 @@
 # Intellij
 .idea/
+
+# Python
+__pycache__/
