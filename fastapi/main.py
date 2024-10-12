@@ -115,8 +115,7 @@ def startup_event():
     # scheduler to rotate Bo-Men image every X minutes/hours
     scheduler.add_job(change_current_bomen, 'interval', seconds=1)  # todo: change interval to 1 'minutes' during demo.
     try:
-        logger.info("start")
-        # process_raw_image_from_dir("20241012_084121")
+        logger.info("Initialise FastAPI Backend")
         logger.info(random_image)
         logger.info("end")
         # scheduler.start()
