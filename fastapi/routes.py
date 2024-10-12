@@ -6,6 +6,11 @@ from typing import List
 router = APIRouter()
 
 
+@router.get("/api/health")
+async def health() -> str:
+    return "Hello from FastAPI"
+
+
 @router.get("/")
 async def home():
     return {"message": "Hello, World!"}
