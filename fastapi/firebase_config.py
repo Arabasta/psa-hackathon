@@ -5,8 +5,8 @@ cred = credentials.Certificate("firebase.json")
 
 try:
     firebase_admin.initialize_app(cred, {
-        'storageBucket': 'psa-hack-64826',
-        'databaseURL': 'https://psa-hack-64826.firebaseio.com'
+        'storageBucket': 'psa-hackathon-alvin',
+        'databaseURL': 'https://psa-hackathon-alvin.firebaseio.com'
     })
 except Exception as e:
     print(f"Error initializing Firebase Admin SDK: {e}")

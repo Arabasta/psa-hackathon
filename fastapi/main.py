@@ -5,10 +5,14 @@ import subprocess, sys
 from pathlib import Path
 
 from fastapi import FastAPI
+from routes import router
 from apscheduler.schedulers.background import BackgroundScheduler
+
+from routes import random_image
 
 # Initialise FastAPI and logger
 app = FastAPI(docs_url="/documentation", redoc_url=None)
+app.include_router(router)
 logger = logging.getLogger('uvicorn')
 
 # Constants
@@ -112,7 +116,8 @@ def startup_event():
     scheduler.add_job(change_current_bomen, 'interval', seconds=1)  # todo: change interval to 1 'minutes' during demo.
     try:
         logger.info("start")
-        process_raw_image_from_dir("20241012_084121")
+        # process_raw_image_from_dir("20241012_084121")
+        logger.info(random_image)
         logger.info("end")
         # scheduler.start()
     except (KeyboardInterrupt, SystemExit):
