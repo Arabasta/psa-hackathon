@@ -1,11 +1,12 @@
 import useImage from "../hooks/useImage";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 
 export default function Home() {
   const { message, data, error, postUploadImage } = useImage(); // Properly destructuring postUploadImage
   const [selectedFile, setSelectedFile] = useState(null); // State to store the selected file
   const [imageCaption, setImageCaption] = useState(""); // Optional: State for image caption if needed
   const [employees, setEmployees] = useState(""); // Optional: State for employees data if needed
+  const [generatedImageUrl, setGeneratedImageUrl] = useState(""); //
 
   /*
    * EVENT HANDLERS
@@ -46,6 +47,7 @@ export default function Home() {
       // This is where the formData gets passed to postUploadImage
       await postUploadImage(formData); // Ensure this function is properly invoked
       alert("Image uploaded successfully!");
+      setGeneratedImageUrl(data.image_url);
     } catch (err) {
       console.error("Error uploading image:", err);
       alert("Failed to upload image.");
@@ -57,10 +59,23 @@ export default function Home() {
           className={`grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
       >
         <h1>SUBMIT PAGE</h1>
+
+        {/* Generated Image */}
+        <div>
+          {(generatedImageUrl) ?
+              <img
+                  src={generatedImageUrl}
+                  alt="new"
+              />
+              :
+              <></>
+          }
+        </div>
+
         <main className="flex flex-col gap-6
         row-start-2 items-center justify-center sm:items-center">
 
-          {/* Image Selector */}
+        {/* Image Selector */}
           <input
               type="file"
               accept="image/png, image/jpeg"
