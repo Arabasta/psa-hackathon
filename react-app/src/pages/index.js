@@ -1,30 +1,10 @@
 import Image from "next/image";
 import localFont from "next/font/local";
-import getFastapiHealth from "../api/hello"
+import useHealth from "../hooks/useHealth";
 import {useState, useEffect} from "react";
 
 export default function Home() {
-  const [healthStatus, setHealthStatus] = useState('');
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // Use useEffect to fetch the health status when the component mounts
-  useEffect(() => {
-    const fetchHealthStatus = async () => {
-      try {
-        const result = await getFastapiHealth();
-        setHealthStatus(result);  // Set the result to the state
-        setError(null)
-      } catch (err) {
-        setError('Failed to fetch health status');
-        console.error(err);  // Log the error to the console
-      } finally {
-        setLoading(false);  // Set loading to false when request is done
-      }
-    };
-
-    fetchHealthStatus();
-  }, []);  // Empty dependency array ensures this effect runs only once (on mount)
+  const {healthStatus, error, loading} = useHealth();
 
   // Render loading, error, or the health status
   if (loading) {
