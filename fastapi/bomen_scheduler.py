@@ -8,9 +8,19 @@ from services import set_bomen_of_the_day
 
 scheduler = AsyncIOScheduler()
 fun_facts = [
-    "fun fact1",
-    "fun fact2",
-    "fun fact3",
+    "Generally displayed in groups, the Bo-men stride forward with passion and purpose, moving towards a common goal.",
+    "The Bo-men sculptures celebrate human potential, resilience and the spirit of collaboration, which echo themes "
+    "central to PSA’s core ethos.",
+    "The Bo-men's form transcends race and nationality, connecting instead with the common thread that is humanity."
+    "PSA Singapore has a global network encompassing 179 locations in 45 countries.",
+    "We operate the world's largest container transhipment hub.",
+    "About 85 per cent of the containers that arrive in Singapore are transhipped to another port of call.",
+    "total of 36 ‘Bo-men’ of varying sizes now reside in the PSA Horizons building in Singapore, alongside 11 in our "
+    "upcoming Tuas Port.",
+    "The Bo-men can be found at key points starting from the drop off foyer to the main lobby and up through the "
+    "building to the sky garden’s above.",
+    "Through the art of sculpture, Daisy and her Bo-men embody this same spirit of being Alongside in their form and "
+    "posture, conveying this unity of purpose with diversity, equity and inclusion, suspended in time.",
 ]
 fun_fact_index = 0
 
