@@ -12,9 +12,9 @@ from fastapi import File, UploadFile
 logger = logging.getLogger('uvicorn')
 bomen_of_the_day_cache = None
 default_bomen_cache = {
-    "imageURL": "replace with 1 default",
-    "imageCaption": "Default Bo-Men",
-    "fun_fact": "Fun fact here"
+    "imageURL": "https://www.singaporepsa.com/wp-content/uploads/2022/11/7D2_6142-scaled-e1668155636429.jpg",
+    "imageCaption": "Bo-men sculptures at PSA Horizons",
+    "fun_fact": "Generally displayed in groups, the Bo-men stride forward with passion and purpose, moving towards a common goal."
 }
 
 
