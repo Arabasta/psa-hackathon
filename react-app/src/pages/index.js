@@ -7,7 +7,9 @@ export default function Home() {
   const [imageCaption, setImageCaption] = useState(""); // Optional: State for image caption if needed
   const [employees, setEmployees] = useState(["employee1"]); // Optional: State for employees data if needed
 
-  // Function to handle file selection
+  /*
+   * EVENT HANDLERS
+   */
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
     console.log("File selected:", event.target.files[0]);
@@ -18,7 +20,9 @@ export default function Home() {
     console.log(imageCaption);
   };
 
-  // Function to handle file upload
+  /*
+   * onClick / onChange HANDLERS
+   */
   const handleUploadImage = async () => {
     console.log("Upload button clicked");
 
