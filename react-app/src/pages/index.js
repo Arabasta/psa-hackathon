@@ -7,6 +7,7 @@ export default function Home() {
   const [imageCaption, setImageCaption] = useState(""); // Optional: State for image caption if needed
   const [employees, setEmployees] = useState(""); // Optional: State for employees data if needed
   const [generatedImageUrl, setGeneratedImageUrl] = useState(""); //
+  const [oksScore, setOksScore] = useState(""); //
 
   /*
    * EVENT HANDLERS
@@ -45,10 +46,18 @@ export default function Home() {
 
     try {
       // This is where the formData gets passed to postUploadImage
-      await postUploadImage(formData); // Ensure this function is properly invoked
+      const response = await postUploadImage(formData);  // Get the response directly
       alert("Image uploaded successfully!");
-      console.log(data);
-      setGeneratedImageUrl(data["image_url"]);
+      console.log("Response received:", response);
+
+      // Check the response data and set the image URL
+      if (response && response.data && response.data.image_url) {
+        console.log("Image URL received:", response.data.image_url);
+        setGeneratedImageUrl(response.data.image_url);  // Set the generatedImageUrl directly from the response
+        setOksScore(response.data.oks_score);  // Set the generatedImageUrl directly from the response
+      } else {
+        console.error("Image URL not found in response");
+      }
     } catch (err) {
       console.error("Error uploading image:", err);
       alert("Failed to upload image.");
@@ -66,17 +75,20 @@ export default function Home() {
         {/* Generated Image */}
         <div>
           {(generatedImageUrl) ?
-              <img
-                  src={generatedImageUrl}
-                  alt="new"
-                  width={300} height={300}
-              />
+              <div>
+                <img
+                    src={generatedImageUrl}
+                    alt="new"
+                    width={300} height={300}
+                />
+                <h1>Your image scored: {oksScore}</h1>
+              </div>
               :
               <></>
           }
         </div>
 
-        {/* Image Selector */}
+          {/* Image Selector */}
           <input
               type="file"
               accept="image/png, image/jpeg"
