@@ -25,8 +25,8 @@ const getRandomImage = async () => {
   return response.data;
 }
 
-const getNextImages = async () => {
-  const response = await axiosInstance.get('/next_images');
+const getNextImage = async () => {
+  const response = await axiosInstance.get('/next_image');
   return response.data;
 }
 
@@ -40,7 +40,7 @@ const FastapiService ={
   postUploadImage,
   getImageData,
   getRandomImage,
-  getNextImages,
+  getNextImage,
   getBomenOfTheDay
 };
 
