@@ -25,9 +25,10 @@ async def upload_image(image: UploadFile = File(...), image_caption: str = Form(
 
     # store metadata in Firestore
     firestore_submission_data = store_submission_in_firestore(image_url, image_caption, employees)
-
+    # Rewind the file after uploading to storage
+    await image.seek(0)
     # activate services.openpose_handle_new_image handle new image, and return URL of generated image and OKS score
-    openpose_uploaded_image_data = await openpose_handle_new_image(image, image_name)
+    openpose_uploaded_image_data = await openpose_handle_new_image(image_name, image)
 
     # combines the above 2 dicts together
     submission_data = firestore_submission_data | openpose_uploaded_image_data

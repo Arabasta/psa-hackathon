@@ -38,19 +38,22 @@ JSON_DIR = str(Path(__file__).parent)+"/json"
 def process_raw_image_from_dir(image_name: str) -> bool:
     try:
         logger.info("Initiate Processing: "+image_name)
-        raw_image_names = Utils.get_files(RAW_IMAGE_DIR, ".jpg")
-        raw_image_names_png = Utils.get_files(RAW_IMAGE_DIR, ".png")
+        raw_image_names = Utils.get_files_that_end_with(RAW_IMAGE_DIR, ".jpg")
+        raw_image_names_png = Utils.get_files_that_end_with(RAW_IMAGE_DIR, ".png")
         raw_image_names.extend(raw_image_names_png)
         if image_name+".jpg" in raw_image_names or image_name+".png" in raw_image_names:
+            logger.info("Image name found in RAW_IMAGE_DIR ... "+image_name)
             pass
         else:
             logger.warn(image_name+".jpg not in RAW_IMAGE_DIR")
             raise Exception(image_name+" not in "+RAW_IMAGE_DIR)
 
         if generate_image(image_name) and generate_json(image_name):
+            logger.info("Calculating OKS score ...")
+            logger.info(image_name)
             score = str(calculate_oks_score(image_name, CURRENT_BOMEN_NAME))
-            # append score to image_name. e.g., x/12345_image_name.png -> x/12345_image_name_99.png
-            os.rename(image_name+'.png', image_name+'_'+score+'.png')
+            # # append score to image_name. e.g., x/12345_image_name.png -> x/12345_image_name_99.png
+            # os.rename(image_name+'.png', image_name+'_'+score+'.png')
             logger.info("generate_image and generate_json success")
             return True
         else:
@@ -63,7 +66,7 @@ def process_raw_image_from_dir(image_name: str) -> bool:
 
 def generate_image(image_name: str) -> bool:
     logger.info("-- Generating image ... generate_image(): "+image_name)
-    all_rendered_image_names = Utils.get_files(RENDERED_IMAGE_DIR, ".png")
+    all_rendered_image_names = Utils.get_files_that_end_with(RENDERED_IMAGE_DIR, ".png")
     if image_name+'_rendered.png' in all_rendered_image_names:
         logger.info(image_name+" was already generated. skipping generate_image().")
         return True
@@ -78,7 +81,7 @@ def generate_image(image_name: str) -> bool:
     parent_path = Path(image_script_path).parent
     p = subprocess.Popen([powershell_path, '-c', 'Set-Location \"{}\";'.format(parent_path), image_script_path], stdout=sys.stdout)
     p.communicate()
-    all_rendered_image_names = Utils.get_files(RENDERED_IMAGE_DIR, ".png")
+    all_rendered_image_names = Utils.get_files_that_end_with(RENDERED_IMAGE_DIR, ".png")
     if image_name+'_rendered.png' in all_rendered_image_names:
         return True
     logger.info(image_name+'_rendered.png')
@@ -88,7 +91,7 @@ def generate_image(image_name: str) -> bool:
 
 def generate_json(image_name: str) -> bool:
     logger.info("-- Generating keypoints.json ... generate_json(): "+image_name)
-    all_json_names = Utils.get_files(JSON_DIR, ".json")
+    all_json_names = Utils.get_files_that_end_with(JSON_DIR, ".json")
     if image_name+'_keypoints.json' in all_json_names:
         logger.info(image_name+" was already generated. skipping generate_json().")
         return True
@@ -103,7 +106,7 @@ def generate_json(image_name: str) -> bool:
     parent_path = Path(json_script_path).parent
     p = subprocess.Popen([powershell_path, '-c', 'Set-Location \"{}\";'.format(parent_path), json_script_path], stdout=sys.stdout)
     p.communicate()
-    all_json_names = Utils.get_files(JSON_DIR, ".json")
+    all_json_names = Utils.get_files_that_end_with(JSON_DIR, ".json")
     if image_name+'_keypoints.json' in all_json_names:
         return True
     return False
@@ -113,7 +116,9 @@ def calculate_oks_score(image_name, current_bomen_name) -> float:
     # retrieve json of image_name and current_bomen_name from JSON_DIR
     # perform calculation
     image_name_path = Utils.get_keypoints_file_path(JSON_DIR, image_name, "json")
+    logger.info("calculate_oks_score - image_name_path: "+image_name_path)
     current_bomen_name_path = Utils.get_keypoints_file_path(JSON_DIR, current_bomen_name, "json")
+    logger.info("calculate_oks_score - current_bomen_name_path: "+current_bomen_name_path)
     return OKS.compare_all_poses(image_name_path, current_bomen_name_path)
 
 
@@ -127,7 +132,6 @@ def change_current_bomen():
 
 
 def get_current_bomen_name():
-    global CURRENT_BOMEN_NAME
     return CURRENT_BOMEN_NAME
 
 
@@ -137,9 +141,8 @@ def startup_event():
     # scheduler to rotate Bo-Men image every X minutes/hours
     scheduler.add_job(change_current_bomen, 'interval', seconds=1)  # todo: change interval to 1 'minutes' during demo.
     try:
+        CURRENT_BOMEN_NAME = "20241012_084121"
         logger.info("start")
-        process_raw_image_from_dir("20241012_084121_bgRemoved")
-        calculate_oks_score("20241012_084121", "20241012_084121_bgRemoved")
         logger.info("end")
         # scheduler.start()
     except (KeyboardInterrupt, SystemExit):
@@ -183,7 +186,18 @@ class Utils:
         global RENDERED_IMAGE_DIR
         for root, dirs, files in os.walk(RENDERED_IMAGE_DIR):
             for file in files:
-                if file.endswith(f"{file_name}_keypoints.png"):
+                if file.endswith(f"{file_name}_rendered.png"):
+                    logger.info(f"{file_name}_rendered.png - found")
+                    return os.path.join(root, file)
+        return ""
+
+
+    @staticmethod
+    def get_raw_image_file_path(file_name) -> str:
+        global RAW_IMAGE_DIR
+        for root, dirs, files in os.walk(RAW_IMAGE_DIR):
+            for file in files:
+                if file.endswith(f"{file_name}.png"):
                     return os.path.join(root, file)
         return ""
 
