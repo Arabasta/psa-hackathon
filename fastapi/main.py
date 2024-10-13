@@ -171,6 +171,40 @@ class Utils:
 
 
 class OKS:
+    # Example usage:
+    '''
+    json_file1 = "20241012_084121_keypoints.json"  # Replace with your file path
+    json_file2 = "20241012_084121_bgRemoved_keypoints.json"  # Replace with your file path
+    threshold = 10  # Set the threshold for matching (in pixels)
+    compare_all_poses(json_file1, json_file2, threshold)
+    '''
+    @staticmethod
+    def compare_all_poses(json_file1, json_file2, threshold=10):
+        """Compare all people between two JSON files, matching by person_id and using threshold-based matching"""
+        with open(json_file1, 'r') as f1, open(json_file2, 'r') as f2:
+            data1 = json.load(f1)
+            data2 = json.load(f2)
+
+            for person1 in data1['people']:
+                person_id = person1['person_id'][0]
+                logger.info(f"Comparing person_id {person_id}...")
+
+                # Get keypoints for this person_id from both files
+                keypoints1 = OKS.get_keypoints_by_person_id(data1, person_id)
+                keypoints2 = OKS.get_keypoints_by_person_id(data2, person_id)
+
+                if keypoints1 is None or keypoints2 is None:
+                    logger.info(f"Person with ID {person_id} not found in both JSON files. Skipping...")
+                    continue
+
+                # Normalize keypoints for comparison
+                normalized_keypoints1 = OKS.normalize_keypoints(keypoints1)
+                normalized_keypoints2 = OKS.normalize_keypoints(keypoints2)
+
+                # Compare the poses using threshold-based matching
+                similarity_score = OKS.threshold_based_matching(normalized_keypoints1, normalized_keypoints2, threshold)
+                logger.info(f"Pose similarity score for person_id {person_id}: {similarity_score}%")
+
     @staticmethod
     def euclidean_distance(p1, p2):
         """Calculate the Euclidean distance between two points (x1, y1) and (x2, y2)"""
@@ -224,36 +258,3 @@ class OKS:
         if total_keypoints == 0:
             return 0  # If no valid keypoints, return 0
         return round((matched_keypoints / total_keypoints) * 100,2)
-
-    @staticmethod
-    def compare_all_poses(json_file1, json_file2, threshold=10):
-        """Compare all people between two JSON files, matching by person_id and using threshold-based matching"""
-        with open(json_file1, 'r') as f1, open(json_file2, 'r') as f2:
-            data1 = json.load(f1)
-            data2 = json.load(f2)
-
-            for person1 in data1['people']:
-                person_id = person1['person_id'][0]
-                logger.info(f"Comparing person_id {person_id}...")
-
-                # Get keypoints for this person_id from both files
-                keypoints1 = OKS.get_keypoints_by_person_id(data1, person_id)
-                keypoints2 = OKS.get_keypoints_by_person_id(data2, person_id)
-
-                if keypoints1 is None or keypoints2 is None:
-                    logger.info(f"Person with ID {person_id} not found in both JSON files. Skipping...")
-                    continue
-
-                # Normalize keypoints for comparison
-                normalized_keypoints1 = OKS.normalize_keypoints(keypoints1)
-                normalized_keypoints2 = OKS.normalize_keypoints(keypoints2)
-
-                # Compare the poses using threshold-based matching
-                similarity_score = OKS.threshold_based_matching(normalized_keypoints1, normalized_keypoints2, threshold)
-                logger.info(f"Pose similarity score for person_id {person_id}: {similarity_score}%")
-
-    # Example usage:
-    json_file1 = "20241012_084121_keypoints.json"  # Replace with your file path
-    json_file2 = "20241012_084121_bgRemoved_keypoints.json"  # Replace with your file path
-    threshold = 10  # Set the threshold for matching (in pixels)
-    # compare_all_poses(json_file1, json_file2, threshold)
