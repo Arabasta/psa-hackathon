@@ -47,7 +47,8 @@ export default function Home() {
       // This is where the formData gets passed to postUploadImage
       await postUploadImage(formData); // Ensure this function is properly invoked
       alert("Image uploaded successfully!");
-      setGeneratedImageUrl(data.image_url);
+      console.log(data);
+      setGeneratedImageUrl(data["image_url"]);
     } catch (err) {
       console.error("Error uploading image:", err);
       alert("Failed to upload image.");
@@ -59,6 +60,8 @@ export default function Home() {
           className={`grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
       >
         <h1>SUBMIT PAGE</h1>
+        <main className="flex flex-col gap-6
+        row-start-2 items-center justify-center sm:items-center">
 
         {/* Generated Image */}
         <div>
@@ -66,14 +69,12 @@ export default function Home() {
               <img
                   src={generatedImageUrl}
                   alt="new"
+                  width={300} height={300}
               />
               :
               <></>
           }
         </div>
-
-        <main className="flex flex-col gap-6
-        row-start-2 items-center justify-center sm:items-center">
 
         {/* Image Selector */}
           <input
