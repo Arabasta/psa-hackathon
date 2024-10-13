@@ -1,16 +1,27 @@
 import useImage from "../hooks/useImage";
-import {useEffect, useState} from "react";
+import useToday from "../hooks/useToday";
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  const { message, data, error, postUploadImage } = useImage(); // Properly destructuring postUploadImage
-  const [selectedFile, setSelectedFile] = useState(null); // State to store the selected file
-  const [imageCaption, setImageCaption] = useState(""); // Optional: State for image caption if needed
-  const [employees, setEmployees] = useState(""); // Optional: State for employees data if needed
-  const [generatedImageUrl, setGeneratedImageUrl] = useState(""); //
-  const [oksScore, setOksScore] = useState(""); //
+  /*
+   * constants for SUBMIT view - handling user input and data to and from backend
+   */
+  const {imageMessage, imageData, imageError, postUploadImage } = useImage();
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imageCaption, setImageCaption] = useState("");
+  const [employees, setEmployees] = useState("");
+  const [generatedImageUrl, setGeneratedImageUrl] = useState("");
+  const [currentView, setCurrentView] = useState("chooseImage");
 
   /*
-   * EVENT HANDLERS
+   * constants for TODAY view - handling bomen of the day
+   */
+  const { todayMessage, todayData, todayError, getBomenOfTheDay } = useToday();
+  const [loadingTodayData, setLoadingTodayData] = useState(false); // To handle loading state
+
+
+  /*
+   * EVENT HANDLERS for SUBMIT view
    */
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -28,7 +39,24 @@ export default function Home() {
   };
 
   /*
-   * onClick / onChange HANDLERS
+   * Fetch Bo-men of the Day when the user navigates to the "TODAY" view
+   */
+  useEffect(() => {
+    if (currentView === "today") {
+      setLoadingTodayData(true);
+      getBomenOfTheDay()
+          .then(() => {
+            setLoadingTodayData(false);
+          })
+          .catch((err) => {
+            console.error("Error fetching Bo-men of the day:", err);
+            setLoadingTodayData(false);
+          });
+    }
+  }, [currentView]); // Fetch Bo-men data only when the "TODAY" view is active
+
+  /*
+   * onClick / onChange HANDLERS for SUBMIT view
    */
   const handleUploadImage = async () => {
     console.log("Upload button clicked");
@@ -45,16 +73,12 @@ export default function Home() {
     formData.append("employees", employees); // Append employees data if needed
 
     try {
-      // This is where the formData gets passed to postUploadImage
-      const response = await postUploadImage(formData);  // Get the response directly
+      const response = await postUploadImage(formData); // Ensure this function is properly invoked
       alert("Image uploaded successfully!");
-      console.log("Response received:", response);
-
       // Check the response data and set the image URL
-      if (response && response.data && response.data.image_url) {
-        console.log("Image URL received:", response.data.image_url);
-        setGeneratedImageUrl(response.data.image_url);  // Set the generatedImageUrl directly from the response
-        setOksScore(response.data.oks_score);  // Set the generatedImageUrl directly from the response
+      if (response && response.imageData && response.imageData.image_url) {
+        console.log("Image URL received:", response.imageData.image_url);
+        setGeneratedImageUrl(response.imageData.image_url); // Set the generatedImageUrl
       } else {
         console.error("Image URL not found in response");
       }
@@ -64,65 +88,112 @@ export default function Home() {
     }
   };
 
+  // Function to render content based on the current view
+  const renderView = () => {
+    switch (currentView) {
+      /*
+       * SUBMIT / CHOOSE IMAGE VIEW
+       */
+      case "chooseImage":
+        return (
+            <div className="flex flex-col gap-3 row-start-2 items-center justify-center sm:items-center">
+              <div>Submit your poses!</div>
+              {/* Generated Image */}
+              <div>
+                {generatedImageUrl ? (
+                    <img src={generatedImageUrl} alt="new" width={300} height={300} />
+                ) : (
+                    <></>
+                )}
+              </div>
+
+              {/* Image Selector */}
+              <input
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  onChange={handleFileChange} // Handle file selection
+                  className="file-input file-input-bordered w-full max-w-xs"
+              />
+
+              {/* Image Caption */}
+              <label className="form-control w-full max-w-xs">
+                <div className="label">
+                  <span className="label-text">Image Caption</span>
+                </div>
+                <input
+                    type="text"
+                    placeholder="Type your caption here!"
+                    className="input w-full max-w-xs"
+                    onChange={handleImageCaption}
+                />
+              </label>
+
+              {/* Employee Names */}
+              <label className="form-control w-full max-w-xs">
+                <div className="label">
+                <span className="label-text">
+                  Who are in this picture? <br />
+                  (Type your names, separated by comma)
+                </span>
+                </div>
+                <input
+                    type="text"
+                    placeholder="Type your names here!"
+                    className="input w-full max-w-xs"
+                    onChange={handleEmployeeNames}
+                />
+              </label>
+
+              <button className="btn" onClick={handleUploadImage}>
+                SUBMIT
+              </button>
+            </div>
+        );
+
+        /*
+        * TODAY / BO-MEN OF THE DAY VIEW
+        */
+      case "today":
+        if (loadingTodayData) {
+          return <div>Loading Bo-men of the day...</div>;
+        }
+
+        if (todayError) {
+          return <div>Error: {todayError}</div>;
+        }
+
+        return (
+            <div className="flex flex-col gap-3 row-start-2 items-center justify-center sm:items-center">
+              <h2>Bo-Men of the Day!</h2>
+              {todayData?.imageURL ? (
+                  <img src={todayData.imageURL} alt="Bo-men of the Day" width={300} height={300} />
+              ) : (
+                  <div>No image available</div>
+              )}
+              {todayData?.imageCaption ? <p>Caption: {todayData.imageCaption}</p> : null}
+              {todayData?.fun_fact ? <p>Fun Fact: {todayData.fun_fact}</p> : null}
+            </div>
+        );
+
+      /*
+       * GALLERY / NEXT IMAGE VIEW
+       */
+      case "gallery":
+        return <div>Alongside your fellow colleagues!</div>; // Placeholder for gallery content
+
+      default:
+        return <div>Invalid View</div>;
+    }
+  };
+
+
   return (
       <div
           className={`grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
       >
-        <h1>SUBMIT PAGE</h1>
-        <main className="flex flex-col gap-6
-        row-start-2 items-center justify-center sm:items-center">
-
-        {/* Generated Image */}
-        <div>
-          {(generatedImageUrl) ?
-              <div>
-                <img
-                    src={generatedImageUrl}
-                    alt="new"
-                    width={300} height={300}
-                />
-                <h1>Your image scored: {oksScore}</h1>
-              </div>
-              :
-              <></>
-          }
-        </div>
-
-          {/* Image Selector */}
-          <input
-              type="file"
-              accept="image/png, image/jpeg"
-              onChange={handleFileChange} // Handle file selection
-              className="file-input file-input-bordered w-full max-w-xs"
-          />
-
-          {/* Image Caption */}
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Image Caption</span>
-            </div>
-            <input type="text"
-                   placeholder="Type your caption here!"
-                   className="input w-full max-w-xs"
-                   onChange={handleImageCaption}
-            />
-          </label>
-
-          {/* Employee Names */}
-          <label className="form-control w-full max-w-xs">
-            <div className="label">
-              <span className="label-text">Who are in this picture? {<br/>}(Type your names, separated by comma)</span>
-            </div>
-            <input type="text"
-                   placeholder="Type your caption here!"
-                   className="input w-full max-w-xs"
-                   onChange={handleEmployeeNames}
-            />
-          </label>
-
-          <button className="btn" onClick={handleUploadImage}>
-            SUBMIT
-          </button>
+        <main className="flex flex-col gap-6 row-start-2 items-center justify-center sm:items-center">
+          {/* Render content based on the current view */}
+          {renderView()}
 
           {/* Divider */}
           <div className="flex w-full flex-col border-opacity-50">
@@ -130,9 +201,15 @@ export default function Home() {
           </div>
 
           <footer className="row-start-3 flex gap-4 items-center justify-center">
-            <button className="btn">GALLERY</button>
-            <button className="btn">CHOOSE IMAGE</button>
-            <button className="btn">TODAY</button>
+            <button className="btn" onClick={() => setCurrentView("gallery")}>
+              GALLERY
+            </button>
+            <button className="btn" onClick={() => setCurrentView("chooseImage")}>
+              CHOOSE IMAGE
+            </button>
+            <button className="btn" onClick={() => setCurrentView("today")}>
+              TODAY
+            </button>
           </footer>
         </main>
       </div>

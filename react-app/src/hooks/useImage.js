@@ -1,12 +1,10 @@
-// useImage.js
-
 import { useState } from "react";
 import FastapiService from "@/services/FastapiService";
 
 const useImage = () => {
-    const [message, setMessage] = useState("");
-    const [data, setData] = useState({});
-    const [error, setError] = useState("");
+    const [imageMessage, setMessage] = useState("");
+    const [imageData, setData] = useState({});
+    const [imageError, setError] = useState("");
 
     const postUploadImage = async (formData) => {
         try {
@@ -22,7 +20,7 @@ const useImage = () => {
     };
 
 
-    return { message, data, error, postUploadImage };
+    return { imageMessage, imageData, imageError, postUploadImage };
 };
 
 export default useImage;
