@@ -10,6 +10,13 @@ from pathlib import Path
 from fastapi import File, UploadFile
 
 logger = logging.getLogger('uvicorn')
+bomen_of_the_day_cache = None
+default_bomen_cache = {
+    "imageURL": "replace with 1 default",
+    "imageCaption": "Default Bo-Men",
+    "fun_fact": "Fun fact here"
+}
+
 
 async def upload_image_to_storage(image):
     image_name = f"{uuid.uuid4()}_{image.filename}"
@@ -126,3 +133,17 @@ async def create_upload_file_from_path(file_path: str) -> UploadFile:
         upload_file = UploadFile(filename=file_name, file=io.BytesIO(file_content))
 
     return upload_file
+
+
+def get_bomen_of_the_day():
+    global bomen_of_the_day_cache
+    if bomen_of_the_day_cache:
+        return bomen_of_the_day_cache
+    else:
+        return default_bomen_cache
+
+
+def set_bomen_of_the_day(bomen_data):
+    global bomen_of_the_day_cache
+    bomen_of_the_day_cache = bomen_data
+    return bomen_of_the_day_cache

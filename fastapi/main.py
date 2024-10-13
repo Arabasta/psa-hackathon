@@ -11,6 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes import router
 from apscheduler.schedulers.background import BackgroundScheduler
+from bomen_scheduler import schedule_bomen_job
 
 from routes import random_image
 
@@ -317,3 +318,7 @@ class OKS:
         if total_keypoints == 0:
             return 0  # If no valid keypoints, return 0
         return round((matched_keypoints / total_keypoints) * 100,2)
+
+
+# start bo-men of the day scheduler
+schedule_bomen_job()
