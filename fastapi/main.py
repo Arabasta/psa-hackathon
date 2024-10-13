@@ -49,9 +49,8 @@ def process_raw_image_from_dir(image_name: str) -> bool:
             raise Exception(image_name+" not in "+RAW_IMAGE_DIR)
 
         if generate_image(image_name) and generate_json(image_name):
-            logger.info("Calculating OKS score ...")
-            logger.info(image_name)
-            score = str(calculate_oks_score(image_name, CURRENT_BOMEN_NAME))
+            logger.info("Calculating OKS score ... "+image_name)
+            score = str(calculate_oks_score(image_name))
             # # append score to image_name. e.g., x/12345_image_name.png -> x/12345_image_name_99.png
             # os.rename(image_name+'.png', image_name+'_'+score+'.png')
             logger.info("generate_image and generate_json success")
@@ -112,12 +111,13 @@ def generate_json(image_name: str) -> bool:
     return False
 
 
-def calculate_oks_score(image_name, current_bomen_name) -> float:
+def calculate_oks_score(image_name) -> float:
+    global CURRENT_BOMEN_NAME
     # retrieve json of image_name and current_bomen_name from JSON_DIR
     # perform calculation
     image_name_path = Utils.get_keypoints_file_path(JSON_DIR, image_name, "json")
     logger.info("calculate_oks_score - image_name_path: "+image_name_path)
-    current_bomen_name_path = Utils.get_keypoints_file_path(JSON_DIR, current_bomen_name, "json")
+    current_bomen_name_path = Utils.get_keypoints_file_path(JSON_DIR, CURRENT_BOMEN_NAME, "json")
     logger.info("calculate_oks_score - current_bomen_name_path: "+current_bomen_name_path)
     return OKS.compare_all_poses(image_name_path, current_bomen_name_path)
 

@@ -101,7 +101,7 @@ async def openpose_handle_new_image(image_name, image: UploadFile = File(...)):
     upload_file = await create_upload_file_from_path(upload_file_path)
 
     generated_image_data["image_url"] = await upload_image_to_storage(upload_file)
-    generated_image_data["oks_score"] = calculate_oks_score(image_name, get_current_bomen_name)
+    generated_image_data["oks_score"] = calculate_oks_score(image_name)
 
     # except Exception as e:
     #     logger.error(e)
