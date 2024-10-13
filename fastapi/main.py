@@ -1,6 +1,8 @@
 import os
 import logging
 import random
+import json
+import math
 import subprocess, sys
 from pathlib import Path
 
@@ -24,7 +26,11 @@ def process_raw_image_from_dir(image_name: str) -> bool:
     try:
         logger.info("Initiate Processing: "+image_name)
         raw_image_names = Utils.get_files(RAW_IMAGE_DIR, ".jpg")
-        if image_name+".jpg" not in raw_image_names:
+        raw_image_names_png = Utils.get_files(RAW_IMAGE_DIR, ".png")
+        raw_image_names.extend(raw_image_names_png)
+        if image_name+".jpg" in raw_image_names or image_name+".png" in raw_image_names:
+            pass
+        else:
             logger.warn(image_name+".jpg not in RAW_IMAGE_DIR")
             raise Exception(image_name+" not in "+RAW_IMAGE_DIR)
 
@@ -93,7 +99,9 @@ def generate_json(image_name: str) -> bool:
 def calculate_oks_score(image_name, current_bomen_name) -> float:
     # retrieve json of image_name and current_bomen_name from JSON_DIR
     # perform calculation
-    return -1
+    image_name_path = Utils.get_keypoints_file_path(JSON_DIR, image_name, "json")
+    current_bomen_name_path = Utils.get_keypoints_file_path(JSON_DIR, current_bomen_name, "json")
+    return OKS.compare_all_poses(image_name_path, current_bomen_name_path)
 
 
 def change_current_bomen():
@@ -112,7 +120,8 @@ def startup_event():
     scheduler.add_job(change_current_bomen, 'interval', seconds=1)  # todo: change interval to 1 'minutes' during demo.
     try:
         logger.info("start")
-        process_raw_image_from_dir("20241012_084121")
+        process_raw_image_from_dir("20241012_084121_bgRemoved")
+        calculate_oks_score("20241012_084121", "20241012_084121_bgRemoved")
         logger.info("end")
         # scheduler.start()
     except (KeyboardInterrupt, SystemExit):
@@ -139,3 +148,100 @@ class Utils:
                     full_path = os.path.join(root, file)
                     file_names.append(file)
         return file_names
+
+    @staticmethod
+    def get_keypoints_file_path(directory, file_name, file_extension) -> str:
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                if file.endswith(f"{file_name}_keypoints.{file_extension}"):
+                    return os.path.join(root, file)
+        return ""
+
+
+class OKS:
+    @staticmethod
+    def euclidean_distance(p1, p2):
+        """Calculate the Euclidean distance between two points (x1, y1) and (x2, y2)"""
+        return math.sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
+
+    @staticmethod
+    def get_keypoints_by_person_id(data, person_id):
+        """Retrieve the keypoints for the given person_id from the data"""
+        for person in data['people']:
+            if person['person_id'][0] == person_id:
+                keypoints = person['pose_keypoints_2d']
+                return keypoints
+        return None  # Return None if the person_id is not found
+
+    @staticmethod
+    def normalize_keypoints(keypoints):
+        """Normalize keypoints by centering and scaling them"""
+        neck_x, neck_y = keypoints[3], keypoints[4]  # Use neck (index 1) as center
+        normalized_keypoints = []
+        for i in range(0, len(keypoints), 3):  # Step by 3: (x, y, confidence)
+            if keypoints[i+2] > 0:  # If confidence is positive
+                normalized_x = keypoints[i] - neck_x
+                normalized_y = keypoints[i+1] - neck_y
+                normalized_keypoints.append([normalized_x, normalized_y])
+            else:
+                normalized_keypoints.append([0, 0])  # Treat [0, 0, 0] as valid zero points
+        return normalized_keypoints
+
+    @staticmethod
+    def threshold_based_matching(keypoints1, keypoints2, threshold=10):
+        """
+        Compare two sets of keypoints by checking how many are within a threshold distance.
+        Returns the percentage of matched keypoints.
+        """
+        matched_keypoints = 0
+        total_keypoints = 0
+
+        # Iterate through keypoints and compare valid keypoints
+        for i in range(len(keypoints1)):
+            if keypoints1[i] == [0, 0] and keypoints2[i] == [0, 0]:
+                # Both keypoints are [0, 0], consider this as a valid match
+                continue  # No need to add to the count
+            elif keypoints1[i] != [0, 0] and keypoints2[i] != [0, 0]:
+                # Calculate Euclidean distance for valid keypoints
+                distance = OKS.euclidean_distance(keypoints1[i], keypoints2[i])
+                if distance <= threshold:
+                    matched_keypoints += 1
+                total_keypoints += 1
+
+        # Calculate percentage score
+        if total_keypoints == 0:
+            return 0  # If no valid keypoints, return 0
+        return round((matched_keypoints / total_keypoints) * 100,2)
+
+    @staticmethod
+    def compare_all_poses(json_file1, json_file2, threshold=10):
+        """Compare all people between two JSON files, matching by person_id and using threshold-based matching"""
+        with open(json_file1, 'r') as f1, open(json_file2, 'r') as f2:
+            data1 = json.load(f1)
+            data2 = json.load(f2)
+
+            for person1 in data1['people']:
+                person_id = person1['person_id'][0]
+                logger.info(f"Comparing person_id {person_id}...")
+
+                # Get keypoints for this person_id from both files
+                keypoints1 = OKS.get_keypoints_by_person_id(data1, person_id)
+                keypoints2 = OKS.get_keypoints_by_person_id(data2, person_id)
+
+                if keypoints1 is None or keypoints2 is None:
+                    logger.info(f"Person with ID {person_id} not found in both JSON files. Skipping...")
+                    continue
+
+                # Normalize keypoints for comparison
+                normalized_keypoints1 = OKS.normalize_keypoints(keypoints1)
+                normalized_keypoints2 = OKS.normalize_keypoints(keypoints2)
+
+                # Compare the poses using threshold-based matching
+                similarity_score = OKS.threshold_based_matching(normalized_keypoints1, normalized_keypoints2, threshold)
+                logger.info(f"Pose similarity score for person_id {person_id}: {similarity_score}%")
+
+    # Example usage:
+    json_file1 = "20241012_084121_keypoints.json"  # Replace with your file path
+    json_file2 = "20241012_084121_bgRemoved_keypoints.json"  # Replace with your file path
+    threshold = 10  # Set the threshold for matching (in pixels)
+    # compare_all_poses(json_file1, json_file2, threshold)
