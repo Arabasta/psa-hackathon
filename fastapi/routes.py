@@ -1,6 +1,6 @@
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Query
 from services import (upload_image_to_storage, store_submission_in_firestore, get_submission_from_firestore,
-                      get_random_image, get_next_images)
+                      get_random_image, get_next_images, openpose_handle_new_image)
 from typing import List
 
 router = APIRouter()
@@ -20,10 +20,17 @@ async def home():
 async def upload_image(image: UploadFile = File(...), image_caption: str = Form(...), employees: str = Form(...)):
     # resize image
     # image = await resize_image(image)
+    image_name = image.filename
     image_url = await upload_image_to_storage(image)
 
     # store metadata in Firestore
-    submission_data = store_submission_in_firestore(image_url, image_caption, employees)
+    firestore_submission_data = store_submission_in_firestore(image_url, image_caption, employees)
+
+    # activate services.openpose_handle_new_image handle new image, and return URL of generated image and OKS score
+    openpose_uploaded_image_data = await openpose_handle_new_image(image, image_name)
+
+    # combines the above 2 dicts together
+    submission_data = firestore_submission_data | openpose_uploaded_image_data
 
     return {"message": "Image uploaded successfully", "data": submission_data}
 

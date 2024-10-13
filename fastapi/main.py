@@ -57,7 +57,7 @@ def process_raw_image_from_dir(image_name: str) -> bool:
             logger.warn(image_name+" keypoint generation failed")
             raise Exception(image_name+" keypoint generation failed")
 
-    except Exception as e:
+    except Exception:
         return False
 
 
@@ -126,6 +126,11 @@ def change_current_bomen():
     return
 
 
+def get_current_bomen_name():
+    global CURRENT_BOMEN_NAME
+    return CURRENT_BOMEN_NAME
+
+
 @app.on_event("startup")
 def startup_event():
     scheduler = BackgroundScheduler(logger=logger)
@@ -152,15 +157,17 @@ class Utils:
                     file_paths[file] = full_path
         return file_paths
 
+
     @staticmethod
-    def get_files(directory, file_extension) -> [str]:
+    def get_files_that_end_with(directory, string) -> [str]:
         file_names = []
         for root, dirs, files in os.walk(directory):
             for file in files:
-                if file.endswith(f"{file_extension}"):  # e.g. '.pkl' files
+                if file.endswith(f"{string}"):  # e.g. '.pkl' files
                     full_path = os.path.join(root, file)
                     file_names.append(file)
         return file_names
+
 
     @staticmethod
     def get_keypoints_file_path(directory, file_name, file_extension) -> str:
@@ -169,6 +176,17 @@ class Utils:
                 if file.endswith(f"{file_name}_keypoints.{file_extension}"):
                     return os.path.join(root, file)
         return ""
+
+
+    @staticmethod
+    def get_rendered_image_file_path(file_name) -> str:
+        global RENDERED_IMAGE_DIR
+        for root, dirs, files in os.walk(RENDERED_IMAGE_DIR):
+            for file in files:
+                if file.endswith(f"{file_name}_keypoints.png"):
+                    return os.path.join(root, file)
+        return ""
+
 
     @staticmethod
     def resize_image(input_image_path, output_image_path, target_width, target_height):

@@ -2,6 +2,8 @@ from datetime import datetime
 from firebase_config import db, bucket
 import uuid
 import random
+from pathlib import Path
+from fastapi import File, UploadFile
 
 
 async def upload_image_to_storage(image):
@@ -59,3 +61,60 @@ def get_next_images(last_image_id=None, limit=5):
     images = [doc.to_dict() for doc in docs]
 
     return images
+
+'''
+    1. Retrieve uploaded image
+    2. Generate image and keypoints json
+    3. Perform OKS scoring
+    4. Upload generated image to Storage
+    5. Return to React: 1) generated image url for display, 2) OKS score
+'''
+
+RAW_IMAGE_DIR = str(Path(__file__).parent)+"/raw_image"
+
+async def openpose_handle_new_image(image, image_name):
+    from main import (get_current_bomen_name, process_raw_image_from_dir, calculate_oks_score)
+    from main import Utils
+
+    global RAW_IMAGE_DIR
+    generated_image_data = {}
+    try:
+        # store image to RAW_IMAGE_DIR
+        await save_upload_file_to_path(RAW_IMAGE_DIR, image)
+        image_name = os.path.splitext(image.filename)[0]
+
+
+        if process_raw_image_from_dir(image_name) == False:
+            raise Exception("Failed to use OpenPose to process image: "+image_name)
+
+        upload_file_path = Utils.get_files_that_end_with(image_name+"_rendered.png")
+
+        upload_file = await create_upload_file_from_path(upload_file_path)
+
+        generated_image_data["image_url"] = await upload_image_to_storage(upload_file)
+        generated_image_data["oks_score"] = calculate_oks_score(image_name, get_current_bomen_name)
+
+    except Exception:
+        pass
+
+    return {**generated_image_data}
+
+
+async def save_upload_file_to_path(out_file_path, in_file: UploadFile=File(...)):
+    async with aiofiles.open(out_file_path, 'wb') as out_file:
+        while content := await in_file.read(1024):  # async read chunk
+            await out_file.write(content)  # async write chunk
+
+
+async def create_upload_file_from_path(file_path: str) -> UploadFile:
+    # Get file name and content type (you can adjust the content type based on your use case)
+    file_name = os.path.basename(file_path)
+    content_type = "image/png"  # Adjust if needed, e.g., "image/jpeg"
+
+    # Open the file in binary mode
+    with open(file_path, "rb") as file:
+        # Create an UploadFile object
+        file_data = File(file)
+        upload_file = UploadFile(filename=file_name, file=file_data, content_type=content_type)
+
+    return upload_file
