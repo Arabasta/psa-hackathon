@@ -1,6 +1,6 @@
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Query
 from services import (upload_image_to_storage, store_submission_in_firestore, get_submission_from_firestore,
-                      get_random_image, get_next_images, openpose_handle_new_image, get_bomen_of_the_day)
+                      get_random_image, get_next_image, openpose_handle_new_image, get_bomen_of_the_day)
 from typing import List
 
 router = APIRouter()
@@ -56,14 +56,14 @@ async def random_image():
     return {"message": "Random image retrieved successfully", "data": image_data}
 
 
-@router.get("/api/next_images")
-async def next_images(last_image_id: str = Query(None), limit: int = 5):
-    images = get_next_images(last_image_id, limit)
+@router.get("/api/next_image")
+async def next_image(last_image_id: str = Query(None)):
+    image = get_next_image(last_image_id)
 
-    if not images:
+    if not image:
         raise HTTPException(status_code=404, detail="No more images found")
 
-    return {"message": "Next images retrieved successfully", "data": images}
+    return {"message": "Next image retrieved successfully", "data": image}
 
 
 @router.get("/api/bomen_of_the_day")

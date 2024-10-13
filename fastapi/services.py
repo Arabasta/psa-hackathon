@@ -52,7 +52,6 @@ def get_submission_from_firestore(image_id):
 
 
 def get_random_image():
-    # get all docs
     doc_list = [doc for doc in db.collection("submissions").stream()]
     if not doc_list:
         return None
@@ -61,7 +60,7 @@ def get_random_image():
     return random_doc.to_dict()
 
 
-def get_next_images(last_image_id=None, limit=5):
+def get_next_image(last_image_id=None, limit=1):
     submissions_ref = db.collection("submissions").order_by("dateTime")
 
     if last_image_id:
@@ -72,7 +71,7 @@ def get_next_images(last_image_id=None, limit=5):
     docs = submissions_ref.limit(limit).stream()
     images = [doc.to_dict() for doc in docs]
 
-    return images
+    return images[0] if images else None
 
 '''
     1. Retrieve uploaded image
@@ -137,10 +136,7 @@ async def create_upload_file_from_path(file_path: str) -> UploadFile:
 
 def get_bomen_of_the_day():
     global bomen_of_the_day_cache
-    if bomen_of_the_day_cache:
-        return bomen_of_the_day_cache
-    else:
-        return default_bomen_cache
+    return bomen_of_the_day_cache if bomen_of_the_day_cache else default_bomen_cache
 
 
 def set_bomen_of_the_day(bomen_data):
