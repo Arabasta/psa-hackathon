@@ -6,8 +6,8 @@ const getFastapiHealth = async () => {
   return response.data;
 };
 
-const postUploadImage = async () => {
-  const response = await axiosInstance.post('/upload');
+const postUploadImage = async (image, image_caption, employees) => {
+  const response = await axiosInstance.post('/upload', image, image_caption, employees);
   return response.data;
 }
 
