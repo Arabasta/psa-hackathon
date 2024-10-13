@@ -17,7 +17,7 @@ async def home():
 
 
 @router.post("/api/upload")
-async def upload_image(image: UploadFile = File(...), image_caption: str = Form(...), employees: List[str] = Form(...)):
+async def upload_image(image: UploadFile = File(...), image_caption: str = Form(...), employees: str = Form(...)):
     # resize image
     # image = await resize_image(image)
     image_url = await upload_image_to_storage(image)
