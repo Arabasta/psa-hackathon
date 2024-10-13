@@ -9,7 +9,7 @@ const useHealth = () => {
     const getHealth = async () => {
         try {
             const result = await FastapiService.getFastapiHealth();
-            setHealthStatus(result);  // Set the result to the state
+            setHealthStatus(result.message);  // Set the result to the state
             setError(null)
         } catch (err) {
             setError('Failed to fetch health status');
