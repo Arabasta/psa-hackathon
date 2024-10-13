@@ -197,7 +197,7 @@ class Utils:
         global RAW_IMAGE_DIR
         for root, dirs, files in os.walk(RAW_IMAGE_DIR):
             for file in files:
-                if file.endswith(f"{file_name}.png"):
+                if file.endswith(f"{file_name}.png" or file.endswith(f"{file_name}.jpg")):
                     return os.path.join(root, file)
         return ""
 
@@ -263,6 +263,7 @@ class OKS:
                 # Compare the poses using threshold-based matching
                 similarity_score = OKS.threshold_based_matching(normalized_keypoints1, normalized_keypoints2, threshold)
                 logger.info(f"Pose similarity score for person_id {person_id}: {similarity_score}%")
+                return similarity_score
 
     @staticmethod
     def euclidean_distance(p1, p2):
