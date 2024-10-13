@@ -6,10 +6,14 @@ const getFastapiHealth = async () => {
   return response.data;
 };
 
-const postUploadImage = async (image, image_caption, employees) => {
-  const response = await axiosInstance.post('/upload', image, image_caption, employees);
+const postUploadImage = async (formData) => {
+  const response = await axiosInstance.post('/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
-}
+};
 
 const getImageData = async (image_id) => {
   const response = await axiosInstance.get('/image',image_id);

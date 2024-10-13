@@ -3,6 +3,7 @@ import logging
 import random
 import json
 import math
+from PIL import Image
 import subprocess, sys
 from pathlib import Path
 
@@ -168,6 +169,32 @@ class Utils:
                 if file.endswith(f"{file_name}_keypoints.{file_extension}"):
                     return os.path.join(root, file)
         return ""
+
+    @staticmethod
+    def resize_image(input_image_path, output_image_path, target_width, target_height):
+        """
+        Resize an image to the target dimensions and save it as a PNG.
+
+        Parameters:
+        - input_image_path (str): Path to the input image (jpg or png).
+        - output_image_path (str): Path to save the resized image (must be png).
+        - target_width (int): Target width in pixels.
+        - target_height (int): Target height in pixels.
+
+        Example usage:
+            resize_image("input_image.jpg", "output_image.png", 1000, 1000)
+
+        """
+        try:
+            # Open the input image
+            with Image.open(input_image_path) as img:
+                # Resize the image and Save the resized image as PNG
+                resized_img = img.resize((target_width, target_height), Image.ANTIALIAS)
+                resized_img.save(output_image_path, format="PNG")
+            print(f"Image saved successfully to {output_image_path}")
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
 
 class OKS:

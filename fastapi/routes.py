@@ -7,8 +7,8 @@ router = APIRouter()
 
 
 @router.get("/api/health")
-async def health() -> str:
-    return "Hello from FastAPI"
+async def health():
+    return {"message": "Fastapi Healthy"}
 
 
 @router.get("/")
