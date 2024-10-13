@@ -5,7 +5,7 @@ export default function Home() {
   const { message, data, error, postUploadImage } = useImage(); // Properly destructuring postUploadImage
   const [selectedFile, setSelectedFile] = useState(null); // State to store the selected file
   const [imageCaption, setImageCaption] = useState(""); // Optional: State for image caption if needed
-  const [employees, setEmployees] = useState(["employee1"]); // Optional: State for employees data if needed
+  const [employees, setEmployees] = useState(""); // Optional: State for employees data if needed
 
   /*
    * EVENT HANDLERS
@@ -18,6 +18,11 @@ export default function Home() {
   const handleImageCaption = (event) => {
     setImageCaption(event.target.value);
     console.log(imageCaption);
+  };
+
+  const handleEmployeeNames = (event) => {
+    setEmployees(event.target.value);
+    console.log(employees);
   };
 
   /*
@@ -51,9 +56,11 @@ export default function Home() {
       <div
           className={`grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
       >
-        <main className="flex flex-col gap-8 row-start-2 items-center justify-center sm:items-center">
-          <h1>SUBMIT PAGE</h1>
+        <h1>SUBMIT PAGE</h1>
+        <main className="flex flex-col gap-6
+        row-start-2 items-center justify-center sm:items-center">
 
+          {/* Image Selector */}
           <input
               type="file"
               accept="image/png, image/jpeg"
@@ -61,30 +68,42 @@ export default function Home() {
               className="file-input file-input-bordered w-full max-w-xs"
           />
 
-          {/* User Upload Image*/}
-          <div className="flex gap-4 items-center flex-col sm:flex-row">
-
+          {/* Image Caption */}
+          <label className="form-control w-full max-w-xs">
+            <div className="label">
+              <span className="label-text">Image Caption</span>
+            </div>
             <input type="text"
                    placeholder="Type your caption here!"
                    className="input w-full max-w-xs"
                    onChange={handleImageCaption}
             />
+          </label>
 
-            <button className="btn"
-                    onClick={handleUploadImage}
-            >
-              GO!
-            </button>
-          </div>
+          {/* Employee Names */}
+          <label className="form-control w-full max-w-xs">
+            <div className="label">
+              <span className="label-text">Who are in this picture? {<br/>}(Type your names, separated by comma)</span>
+            </div>
+            <input type="text"
+                   placeholder="Type your caption here!"
+                   className="input w-full max-w-xs"
+                   onChange={handleEmployeeNames}
+            />
+          </label>
+
+          <button className="btn" onClick={handleUploadImage}>
+            SUBMIT
+          </button>
 
           {/* Divider */}
           <div className="flex w-full flex-col border-opacity-50">
             <div className="divider m-0"></div>
           </div>
 
-          <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
+          <footer className="row-start-3 flex gap-4 items-center justify-center">
             <button className="btn">GALLERY</button>
-            <button className="btn">SUBMIT</button>
+            <button className="btn">CHOOSE IMAGE</button>
             <button className="btn">TODAY</button>
           </footer>
         </main>
